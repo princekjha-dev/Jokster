@@ -1,3 +1,6 @@
+// Reusing the jokes array from original script.js
+// Copy the entire jokes array here or import it
+
 const jokes = [
 
   {
@@ -2257,123 +2260,106 @@ const jokes = [
   }
 ];
 
-// Add unique IDs to jokes
+// Add IDs if not present
 jokes.forEach((joke, index) => {
-  joke.id = index + 1;
+  if (!joke.id) joke.id = index + 1;
 });
 
-// DOM Elements
-const elements = {
-  categoryFilter: document.getElementById('category-filter'),
-  newJokeBtn: document.getElementById('new-joke-btn'),
-  jokeCard: document.getElementById('joke-card'),
-  jokeSetup: document.getElementById('joke-setup'),
-  jokePunchline: document.getElementById('joke-punchline'),
-  jokeCategory: document.getElementById('joke-category'),
-  favoriteBtn: document.getElementById('favorite-btn'),
-  ttsBtn: document.getElementById('tts-btn'),
-  copyBtn: document.getElementById('copy-btn'),
-  shareBtn: document.getElementById('share-btn'),
-  rateUpBtn: document.getElementById('rate-up'),
-  rateDownBtn: document.getElementById('rate-down'),
-  voiceSelect: document.getElementById('voice-select'),
-  voiceOptions: document.getElementById('voice-options'),
-  historyContainer: document.getElementById('history-container'),
-  favoritesContainer: document.getElementById('favorites-container'),
-  favoriteSearch: document.getElementById('favorite-search'),
-  clearFavoritesBtn: document.getElementById('clear-favorites'),
-  helpBtn: document.querySelector('.help-btn'),
-  helpModal: document.getElementById('help-modal'),
-  closeModal: document.getElementById('close-modal'),
-  toast: document.getElementById('toast'),
-  toastMessage: document.getElementById('toast-message'),
-  jokesViewed: document.getElementById('jokes-viewed'),
-  favoritesCount: document.getElementById('favorites-count')
-};
-
 // State
-let state = {
+const state = {
   currentJoke: null,
   favorites: [],
   history: [],
-  jokesViewed: 0,
-  voices: []
+  voices: [],
+  currentCategory: 'all'
 };
 
-// Storage Keys
-const STORAGE_KEYS = {
-  FAVORITES: 'jokster_favorites',
-  HISTORY: 'jokster_history',
-  STATS: 'jokster_stats'
+// DOM Elements
+const els = {
+  jokeSetup: document.getElementById('joke-setup'),
+  jokePunchline: document.getElementById('joke-punchline'),
+  newJokeBtn: document.getElementById('new-joke-btn'),
+  favoriteToggle: document.getElementById('favorite-toggle'),
+  copyBtn: document.getElementById('copy-btn'),
+  ttsBtn: document.getElementById('tts-btn'),
+  shareBtn: document.getElementById('share-btn'),
+  categoryLabel: document.getElementById('category-label'),
+  changeCategoryBtn: document.getElementById('change-category'),
+  categoryFilter: document.getElementById('category-filter'),
+  favBadge: document.getElementById('fav-badge'),
+  
+  menuBtn: document.getElementById('menu-btn'),
+  favoritesBtn: document.getElementById('favorites-btn'),
+  menuPanel: document.getElementById('menu-panel'),
+  favoritesPanel: document.getElementById('favorites-panel'),
+  historyPanel: document.getElementById('history-panel'),
+  overlay: document.getElementById('overlay'),
+  
+  closeMenu: document.getElementById('close-menu'),
+  closeFavorites: document.getElementById('close-favorites'),
+  closeHistory: document.getElementById('close-history'),
+  viewHistory: document.getElementById('view-history'),
+  
+  favoriteSearch: document.getElementById('favorite-search'),
+  favoritesList: document.getElementById('favorites-list'),
+  historyList: document.getElementById('history-list'),
+  
+  toast: document.getElementById('toast'),
+  toastMessage: document.getElementById('toast-message'),
+  voiceSelect: document.getElementById('voice-select')
 };
 
-// Initialize App
+// Initialize
 function init() {
-  loadFromStorage();
   populateCategories();
   setupEventListeners();
-  updateStats();
   loadVoices();
   displayRandomJoke();
+  updateFavBadge();
 }
 
-// Load data from memory storage
-function loadFromStorage() {
-  const storedFavorites = state.favorites;
-  const storedHistory = state.history;
-  const storedStats = { jokesViewed: 0 };
-  
-  state.favorites = storedFavorites;
-  state.history = storedHistory;
-  state.jokesViewed = storedStats.jokesViewed;
-  
-  displayFavorites();
-  displayHistory();
-}
-
-// Save to memory storage
-function saveToStorage() {
-  // Memory-only storage - no persistence across sessions
-}
-
-// Populate Categories
+// Populate categories
 function populateCategories() {
   const categories = ['all', ...new Set(jokes.map(j => j.type))];
-  elements.categoryFilter.innerHTML = '';
-  
-  categories.forEach(cat => {
-    const option = document.createElement('option');
-    option.value = cat;
-    option.textContent = cat === 'all' ? 'All Categories' : 
-                         cat.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-    elements.categoryFilter.appendChild(option);
-  });
+  els.categoryFilter.innerHTML = categories.map(cat => {
+    const label = cat === 'all' ? 'All Categories' : 
+                  cat.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    return `<option value="${cat}">${label}</option>`;
+  }).join('');
 }
 
-// Setup Event Listeners
+// Event listeners
 function setupEventListeners() {
-  elements.newJokeBtn.addEventListener('click', displayRandomJoke);
-  elements.favoriteBtn.addEventListener('click', toggleFavorite);
-  elements.ttsBtn.addEventListener('click', readJokeAloud);
-  elements.copyBtn.addEventListener('click', copyJoke);
-  elements.shareBtn.addEventListener('click', shareJoke);
-  elements.rateUpBtn.addEventListener('click', () => rateJoke('up'));
-  elements.rateDownBtn.addEventListener('click', () => rateJoke('down'));
-  elements.favoriteSearch.addEventListener('input', searchFavorites);
-  elements.clearFavoritesBtn.addEventListener('click', clearAllFavorites);
-  elements.helpBtn.addEventListener('click', () => toggleModal(true));
-  elements.closeModal.addEventListener('click', () => toggleModal(false));
-  elements.categoryFilter.addEventListener('change', displayRandomJoke);
+  els.newJokeBtn.addEventListener('click', displayRandomJoke);
+  els.favoriteToggle.addEventListener('click', toggleFavorite);
+  els.copyBtn.addEventListener('click', copyJoke);
+  els.ttsBtn.addEventListener('click', readJokeAloud);
+  els.shareBtn.addEventListener('click', shareJoke);
+  els.changeCategoryBtn.addEventListener('click', () => openPanel('menu'));
   
-  // Keyboard shortcuts
-  document.addEventListener('keydown', handleKeyboardShortcuts);
+  els.menuBtn.addEventListener('click', () => openPanel('menu'));
+  els.favoritesBtn.addEventListener('click', () => openPanel('favorites'));
+  els.viewHistory.addEventListener('click', () => openPanel('history'));
   
-  // Close modal on overlay click
-  document.querySelector('.modal-overlay')?.addEventListener('click', () => toggleModal(false));
+  els.closeMenu.addEventListener('click', closeAllPanels);
+  els.closeFavorites.addEventListener('click', closeAllPanels);
+  els.closeHistory.addEventListener('click', closeAllPanels);
+  els.overlay.addEventListener('click', closeAllPanels);
+  
+  els.categoryFilter.addEventListener('change', (e) => {
+    state.currentCategory = e.target.value;
+    updateCategoryLabel();
+    displayRandomJoke();
+    closeAllPanels();
+  });
+  
+  els.favoriteSearch.addEventListener('input', searchFavorites);
+  
+  document.addEventListener('keydown', handleKeyboard);
 }
 
-// Keyboard Shortcuts
-function handleKeyboardShortcuts(e) {
+// Keyboard shortcuts
+function handleKeyboard(e) {
   if (e.target.matches('input, select, textarea')) return;
   
   switch(e.key.toLowerCase()) {
@@ -2392,78 +2378,38 @@ function handleKeyboardShortcuts(e) {
     case 't':
       if (state.currentJoke) readJokeAloud();
       break;
-    case 'arrowright':
-      cycleCategory();
-      break;
-    case '?':
-      toggleModal(true);
+    case 'escape':
+      closeAllPanels();
       break;
   }
 }
 
-// Cycle through categories
-function cycleCategory() {
-  const options = Array.from(elements.categoryFilter.options);
-  const currentIndex = elements.categoryFilter.selectedIndex;
-  const nextIndex = (currentIndex + 1) % options.length;
-  elements.categoryFilter.selectedIndex = nextIndex;
-  displayRandomJoke();
-}
-
-// Display Random Joke
+// Display random joke
 function displayRandomJoke() {
-  const category = elements.categoryFilter.value;
-  const filteredJokes = category === 'all' ? jokes : jokes.filter(j => j.type === category);
+  const filtered = state.currentCategory === 'all' ? 
+    jokes : jokes.filter(j => j.type === state.currentCategory);
   
-  if (filteredJokes.length === 0) {
-    showToast('No jokes in this category', 'warning');
+  if (filtered.length === 0) {
+    showToast('No jokes in this category');
     return;
   }
   
-  elements.newJokeBtn.classList.add('loading');
-  elements.newJokeBtn.innerHTML = '<i class="fas fa-spinner"></i> Loading...';
-  
-  setTimeout(() => {
-    const randomJoke = filteredJokes[Math.floor(Math.random() * filteredJokes.length)];
-    displayJoke(randomJoke);
-    
-    elements.newJokeBtn.classList.remove('loading');
-    elements.newJokeBtn.innerHTML = '<i class="fas fa-dice"></i> Get New Joke';
-  }, 300);
+  const joke = filtered[Math.floor(Math.random() * filtered.length)];
+  displayJoke(joke);
 }
 
-// Display Joke
+// Display joke
 function displayJoke(joke) {
   state.currentJoke = joke;
   
-  // Animate out
-  elements.jokeCard.style.opacity = '0';
-  elements.jokeCard.style.transform = 'translateY(20px)';
+  els.jokeSetup.textContent = joke.setup;
+  els.jokePunchline.textContent = joke.punchline;
   
-  setTimeout(() => {
-    elements.jokeSetup.textContent = joke.setup;
-    elements.jokePunchline.textContent = joke.punchline;
-    elements.jokeCategory.textContent = joke.type.split('-').map(w => 
-      w.charAt(0).toUpperCase() + w.slice(1)
-    ).join(' ');
-    
-    // Animate in
-    elements.jokeCard.style.opacity = '1';
-    elements.jokeCard.style.transform = 'translateY(0)';
-    
-    // Update UI
-    updateFavoriteButton();
-    resetRatingButtons();
-    enableActionButtons();
-    addToHistory(joke);
-    
-    state.jokesViewed++;
-    updateStats();
-    saveToStorage();
-  }, 200);
+  updateFavoriteButton();
+  addToHistory(joke);
 }
 
-// Toggle Favorite
+// Toggle favorite
 function toggleFavorite() {
   if (!state.currentJoke) return;
   
@@ -2471,50 +2417,61 @@ function toggleFavorite() {
   
   if (index === -1) {
     state.favorites.unshift(state.currentJoke);
-    showToast('Added to favorites! ❤️');
+    showToast('Added to favorites');
   } else {
     state.favorites.splice(index, 1);
     showToast('Removed from favorites');
   }
   
   updateFavoriteButton();
+  updateFavBadge();
   displayFavorites();
-  updateStats();
-  saveToStorage();
 }
 
-// Update Favorite Button
+// Update favorite button
 function updateFavoriteButton() {
   if (!state.currentJoke) return;
   
-  const isFavorite = state.favorites.some(f => f.id === state.currentJoke.id);
+  const isFav = state.favorites.some(f => f.id === state.currentJoke.id);
+  els.favoriteToggle.classList.toggle('active', isFav);
+}
+
+// Update fav badge
+function updateFavBadge() {
+  els.favBadge.textContent = state.favorites.length;
+}
+
+// Copy joke
+async function copyJoke() {
+  if (!state.currentJoke) return;
   
-  if (isFavorite) {
-    elements.favoriteBtn.classList.add('favorited');
-    elements.favoriteBtn.title = 'Remove from Favorites';
-  } else {
-    elements.favoriteBtn.classList.remove('favorited');
-    elements.favoriteBtn.title = 'Add to Favorites';
+  const text = `${state.currentJoke.setup}\n\n${state.currentJoke.punchline}`;
+  
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('Copied to clipboard');
+  } catch (err) {
+    showToast('Failed to copy');
   }
 }
 
-// Read Joke Aloud
+// Read aloud
 function readJokeAloud() {
   if (!state.currentJoke) return;
   
   const text = `${state.currentJoke.setup} ${state.currentJoke.punchline}`;
   const utterance = new SpeechSynthesisUtterance(text);
   
-  if (elements.voiceSelect.value && state.voices.length > 0) {
-    const selectedVoice = state.voices.find(v => v.name === elements.voiceSelect.value);
-    if (selectedVoice) utterance.voice = selectedVoice;
+  if (els.voiceSelect.value && state.voices.length > 0) {
+    const voice = state.voices.find(v => v.name === els.voiceSelect.value);
+    if (voice) utterance.voice = voice;
   }
   
   window.speechSynthesis.speak(utterance);
-  showToast('Reading joke aloud 🔊');
+  showToast('Reading aloud');
 }
 
-// Load Voices
+// Load voices
 function loadVoices() {
   state.voices = window.speechSynthesis.getVoices();
   
@@ -2528,234 +2485,176 @@ function loadVoices() {
   }
 }
 
-// Populate Voices
+// Populate voices
 function populateVoices() {
-  elements.voiceSelect.innerHTML = '<option value="">Default Voice</option>';
-  
-  state.voices.forEach(voice => {
-    const option = document.createElement('option');
-    option.value = voice.name;
-    option.textContent = `${voice.name} (${voice.lang})`;
-    elements.voiceSelect.appendChild(option);
-  });
-  
-  elements.voiceOptions.style.display = 'flex';
+  els.voiceSelect.innerHTML = '<option value="">Default</option>' +
+    state.voices.map(v => 
+      `<option value="${v.name}">${v.name}</option>`
+    ).join('');
 }
 
-// Copy Joke
-async function copyJoke() {
+// Share joke
+function shareJoke() {
   if (!state.currentJoke) return;
   
   const text = `${state.currentJoke.setup}\n\n${state.currentJoke.punchline}`;
   
-  try {
-    await navigator.clipboard.writeText(text);
-    showToast('Joke copied to clipboard! 📋');
-  } catch (err) {
-    showToast('Failed to copy joke', 'error');
-  }
-}
-
-// Share Joke
-function shareJoke() {
-  if (!state.currentJoke) return;
-  
-  const text = `${state.currentJoke.setup}\n\n${state.currentJoke.punchline}\n\nShared from Jokster 😄`;
-  
   if (navigator.share) {
-    navigator.share({
-      title: 'Funny Joke from Jokster',
-      text: text
-    }).catch(err => console.log('Share cancelled'));
+    navigator.share({ title: 'Jokster', text })
+      .catch(() => {});
   } else {
     copyJoke();
-    showToast('Joke copied! Share it with friends! 🔗');
   }
 }
 
-// Rate Joke
-function rateJoke(rating) {
-  if (!state.currentJoke) return;
-  
-  if (rating === 'up') {
-    elements.rateUpBtn.classList.add('rated-up');
-    elements.rateDownBtn.classList.remove('rated-down');
-    showToast('Thanks for the feedback! 👍');
-  } else {
-    elements.rateDownBtn.classList.add('rated-down');
-    elements.rateUpBtn.classList.remove('rated-up');
-    showToast('Thanks for the feedback! 👎');
-  }
-}
-
-// Reset Rating Buttons
-function resetRatingButtons() {
-  elements.rateUpBtn.classList.remove('rated-up');
-  elements.rateDownBtn.classList.remove('rated-down');
-}
-
-// Enable Action Buttons
-function enableActionButtons() {
-  elements.ttsBtn.disabled = false;
-  elements.copyBtn.disabled = false;
-  elements.shareBtn.disabled = false;
-  elements.rateUpBtn.disabled = false;
-  elements.rateDownBtn.disabled = false;
-}
-
-// Add to History
+// Add to history
 function addToHistory(joke) {
-  // Remove if already exists
   state.history = state.history.filter(h => h.id !== joke.id);
-  
-  // Add to beginning
   state.history.unshift(joke);
-  
-  // Keep only last 10
-  if (state.history.length > 10) {
-    state.history = state.history.slice(0, 10);
-  }
-  
+  if (state.history.length > 20) state.history = state.history.slice(0, 20);
   displayHistory();
-  saveToStorage();
 }
 
-// Display History
-function displayHistory() {
-  if (state.history.length === 0) {
-    elements.historyContainer.innerHTML = `
-      <p class="empty-state">
-        <i class="fas fa-clock"></i>
-        No jokes viewed yet
-      </p>
-    `;
-    return;
-  }
-  
-  elements.historyContainer.innerHTML = state.history.map(joke => `
-    <div class="history-item" data-id="${joke.id}">
-      <div class="joke-setup">${joke.setup}</div>
-      <div class="joke-punchline">${joke.punchline}</div>
-    </div>
-  `).join('');
-  
-  // Add click handlers
-  document.querySelectorAll('.history-item').forEach(item => {
-    item.addEventListener('click', () => {
-      const jokeId = parseInt(item.dataset.id);
-      const joke = jokes.find(j => j.id === jokeId);
-      if (joke) displayJoke(joke);
-    });
-  });
-}
-
-// Display Favorites
+// Display favorites
 function displayFavorites(filtered = null) {
   const favs = filtered || state.favorites;
   
   if (favs.length === 0) {
-    elements.favoritesContainer.innerHTML = `
-      <p class="empty-state">
-        <i class="fas fa-heart-broken"></i>
-        No favorite jokes yet
-      </p>
+    els.favoritesList.innerHTML = `
+      <div class="empty-state">
+        <i class="far fa-heart"></i>
+        <p>No favorites yet</p>
+      </div>
     `;
-    elements.clearFavoritesBtn.disabled = true;
     return;
   }
   
-  elements.favoritesContainer.innerHTML = favs.map(joke => `
-    <div class="favorite-item">
-      <div class="favorite-header">
-        <span class="joke-category">${joke.type}</span>
-        <button class="remove-favorite" data-id="${joke.id}">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div class="joke-setup">${joke.setup}</div>
-      <div class="joke-punchline">${joke.punchline}</div>
+  els.favoritesList.innerHTML = favs.map(joke => `
+    <div class="list-item" data-id="${joke.id}">
+      <button class="remove-btn" data-id="${joke.id}">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="setup">${joke.setup}</div>
+      <div class="punchline">${joke.punchline}</div>
     </div>
   `).join('');
   
-  elements.clearFavoritesBtn.disabled = false;
+  els.favoritesList.querySelectorAll('.list-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      if (e.target.closest('.remove-btn')) return;
+      const id = parseInt(item.dataset.id);
+      const joke = jokes.find(j => j.id === id);
+      if (joke) {
+        displayJoke(joke);
+        closeAllPanels();
+      }
+    });
+  });
   
-  // Add click handlers
-  document.querySelectorAll('.remove-favorite').forEach(btn => {
+  els.favoritesList.querySelectorAll('.remove-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const jokeId = parseInt(btn.dataset.id);
-      removeFavorite(jokeId);
+      const id = parseInt(btn.dataset.id);
+      state.favorites = state.favorites.filter(f => f.id !== id);
+      displayFavorites();
+      updateFavoriteButton();
+      updateFavBadge();
+      showToast('Removed from favorites');
     });
   });
 }
 
-// Remove Favorite
-function removeFavorite(jokeId) {
-  state.favorites = state.favorites.filter(f => f.id !== jokeId);
-  displayFavorites();
-  updateFavoriteButton();
-  updateStats();
-  saveToStorage();
-  showToast('Removed from favorites');
-}
-
-// Search Favorites
+// Search favorites
 function searchFavorites() {
-  const query = elements.favoriteSearch.value.toLowerCase();
+  const query = els.favoriteSearch.value.toLowerCase();
   
   if (!query) {
     displayFavorites();
     return;
   }
   
-  const filtered = state.favorites.filter(joke => 
-    joke.setup.toLowerCase().includes(query) ||
-    joke.punchline.toLowerCase().includes(query)
+  const filtered = state.favorites.filter(j =>
+    j.setup.toLowerCase().includes(query) ||
+    j.punchline.toLowerCase().includes(query)
   );
   
   displayFavorites(filtered);
 }
 
-// Clear All Favorites
-function clearAllFavorites() {
-  if (!confirm('Are you sure you want to remove all favorite jokes?')) return;
-  
-  state.favorites = [];
-  displayFavorites();
-  updateFavoriteButton();
-  updateStats();
-  saveToStorage();
-  showToast('All favorites cleared');
-}
-
-// Update Stats
-function updateStats() {
-  elements.jokesViewed.textContent = state.jokesViewed;
-  elements.favoritesCount.textContent = state.favorites.length;
-}
-
-// Toggle Modal
-function toggleModal(show) {
-  if (show) {
-    elements.helpModal.classList.add('active');
-  } else {
-    elements.helpModal.classList.remove('active');
+// Display history
+function displayHistory() {
+  if (state.history.length === 0) {
+    els.historyList.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-clock"></i>
+        <p>No history yet</p>
+      </div>
+    `;
+    return;
   }
+  
+  els.historyList.innerHTML = state.history.map(joke => `
+    <div class="list-item" data-id="${joke.id}">
+      <div class="setup">${joke.setup}</div>
+      <div class="punchline">${joke.punchline}</div>
+    </div>
+  `).join('');
+  
+  els.historyList.querySelectorAll('.list-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const id = parseInt(item.dataset.id);
+      const joke = jokes.find(j => j.id === id);
+      if (joke) {
+        displayJoke(joke);
+        closeAllPanels();
+      }
+    });
+  });
 }
 
-// Show Toast
-function showToast(message, type = 'success') {
-  elements.toastMessage.textContent = message;
-  elements.toast.style.background = type === 'error' ? 'var(--danger)' : 
-                                    type === 'warning' ? 'var(--warning)' : 
-                                    'var(--success)';
+// Update category label
+function updateCategoryLabel() {
+  const cat = state.currentCategory;
+  els.categoryLabel.textContent = cat === 'all' ? 'All jokes' :
+    cat.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
+// Open panel
+function openPanel(name) {
+  closeAllPanels();
   
-  elements.toast.classList.add('show');
+  if (name === 'menu') {
+    els.menuPanel.classList.add('active');
+  } else if (name === 'favorites') {
+    displayFavorites();
+    els.favoritesPanel.classList.add('active');
+  } else if (name === 'history') {
+    displayHistory();
+    els.historyPanel.classList.add('active');
+  }
+  
+  els.overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+// Close all panels
+function closeAllPanels() {
+  els.menuPanel.classList.remove('active');
+  els.favoritesPanel.classList.remove('active');
+  els.historyPanel.classList.remove('active');
+  els.overlay.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+// Show toast
+function showToast(message) {
+  els.toastMessage.textContent = message;
+  els.toast.classList.add('show');
   
   setTimeout(() => {
-    elements.toast.classList.remove('show');
-  }, 3000);
+    els.toast.classList.remove('show');
+  }, 2000);
 }
 
-// Initialize on load
+// Initialize
 document.addEventListener('DOMContentLoaded', init);

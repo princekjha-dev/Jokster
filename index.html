@@ -3,197 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jokster - Your Daily Dose of Laughter</title>
+    <title>Jokster</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Main Container -->
-    <div class="app-container">
-        <!-- Header -->
-        <header class="header">
-            <div class="logo">
-                <span class="logo-icon">😂</span>
-                <h1>Jokster</h1>
-            </div>
-            <p class="tagline">Your Daily Dose of Laughter</p>
-            <button class="help-btn" aria-label="Help" title="Keyboard Shortcuts">
-                <i class="fas fa-question-circle"></i>
+    <!-- Top Nav -->
+    <nav class="top-nav">
+        <div class="logo">Jokster</div>
+        <div class="nav-actions">
+            <button class="icon-btn" id="menu-btn" aria-label="Menu">
+                <i class="fas fa-bars"></i>
             </button>
-        </header>
-
-        <!-- Main Content Grid -->
-        <div class="content-grid">
-            <!-- Left Column -->
-            <div class="left-column">
-                <!-- Controls Card -->
-                <div class="card controls-card">
-                    <h2 class="card-title">
-                        <i class="fas fa-sliders-h"></i>
-                        Controls
-                    </h2>
-                    <div class="control-group">
-                        <label for="category-filter">Category</label>
-                        <select id="category-filter" aria-label="Select Joke Category">
-                            <option value="all" selected>All Categories</option>
-                        </select>
-                    </div>
-                    <button id="new-joke-btn" class="btn btn-primary btn-large">
-                        <i class="fas fa-dice"></i>
-                        Get New Joke
-                    </button>
-                    <div class="stats">
-                        <div class="stat-item">
-                            <i class="fas fa-eye"></i>
-                            <span id="jokes-viewed">0</span>
-                            <small>Viewed</small>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fas fa-heart"></i>
-                            <span id="favorites-count">0</span>
-                            <small>Favorites</small>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- History Card -->
-                <div class="card history-card">
-                    <h2 class="card-title">
-                        <i class="fas fa-history"></i>
-                        Recent Jokes
-                    </h2>
-                    <div id="history-container" class="history-list">
-                        <p class="empty-state">
-                            <i class="fas fa-clock"></i>
-                            No jokes viewed yet
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Column -->
-            <div class="right-column">
-                <!-- Joke Display Card -->
-                <div class="card joke-card" id="joke-card">
-                    <div class="joke-header">
-                        <span class="joke-category" id="joke-category">General</span>
-                        <button class="btn-icon favorite-btn" id="favorite-btn" title="Add to Favorites">
-                            <i class="far fa-heart"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="joke-content">
-                        <div class="joke-setup" id="joke-setup">
-                            Click "Get New Joke" to start laughing! 😄
-                        </div>
-                        <div class="joke-punchline" id="joke-punchline"></div>
-                    </div>
-
-                    <div class="joke-actions">
-                        <div class="action-group">
-                            <button class="btn-icon" id="tts-btn" title="Read Aloud" disabled>
-                                <i class="fas fa-volume-up"></i>
-                            </button>
-                            <button class="btn-icon" id="copy-btn" title="Copy Joke" disabled>
-                                <i class="fas fa-copy"></i>
-                            </button>
-                            <button class="btn-icon" id="share-btn" title="Share Joke" disabled>
-                                <i class="fas fa-share-alt"></i>
-                            </button>
-                        </div>
-                        <div class="rating-group">
-                            <button class="btn-icon rating-btn" id="rate-up" data-rating="up" title="Thumbs Up" disabled>
-                                <i class="far fa-thumbs-up"></i>
-                            </button>
-                            <button class="btn-icon rating-btn" id="rate-down" data-rating="down" title="Thumbs Down" disabled>
-                                <i class="far fa-thumbs-down"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="voice-options" id="voice-options" style="display: none;">
-                        <label for="voice-select">Voice:</label>
-                        <select id="voice-select"></select>
-                    </div>
-                </div>
-
-                <!-- Favorites Card -->
-                <div class="card favorites-card">
-                    <div class="card-header-row">
-                        <h2 class="card-title">
-                            <i class="fas fa-star"></i>
-                            Favorite Jokes
-                        </h2>
-                        <button class="btn btn-danger btn-small" id="clear-favorites" disabled>
-                            <i class="fas fa-trash-alt"></i>
-                            Clear All
-                        </button>
-                    </div>
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="favorite-search" placeholder="Search favorites...">
-                    </div>
-                    <div id="favorites-container" class="favorites-list">
-                        <p class="empty-state">
-                            <i class="fas fa-heart-broken"></i>
-                            No favorite jokes yet
-                        </p>
-                    </div>
-                </div>
-            </div>
+            <button class="icon-btn" id="favorites-btn" aria-label="Favorites">
+                <i class="far fa-heart"></i>
+                <span class="badge" id="fav-badge">0</span>
+            </button>
         </div>
-    </div>
+    </nav>
 
-    <!-- Help Modal -->
-    <div class="modal" id="help-modal">
-        <div class="modal-overlay"></div>
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Keyboard Shortcuts</h2>
-                <button class="modal-close" id="close-modal">
-                    <i class="fas fa-times"></i>
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Joke Display -->
+        <div class="joke-container" id="joke-container">
+            <button class="favorite-toggle" id="favorite-toggle" aria-label="Favorite">
+                <i class="far fa-heart"></i>
+            </button>
+            
+            <div class="joke-text">
+                <p class="setup" id="joke-setup">Press Enter or tap below to get started</p>
+                <p class="punchline" id="joke-punchline"></p>
+            </div>
+
+            <div class="quick-actions" id="quick-actions">
+                <button class="quick-btn" id="copy-btn" title="Copy">
+                    <i class="fas fa-copy"></i>
+                </button>
+                <button class="quick-btn" id="tts-btn" title="Read aloud">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+                <button class="quick-btn" id="share-btn" title="Share">
+                    <i class="fas fa-share-alt"></i>
                 </button>
             </div>
-            <div class="modal-body">
-                <div class="shortcut-list">
-                    <div class="shortcut-item">
-                        <kbd>Enter</kbd>
-                        <span>Get a new joke</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <kbd>F</kbd>
-                        <span>Toggle favorite</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <kbd>C</kbd>
-                        <span>Copy current joke</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <kbd>S</kbd>
-                        <span>Share joke</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <kbd>T</kbd>
-                        <span>Read joke aloud</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <kbd>→</kbd>
-                        <span>Next category</span>
-                    </div>
-                    <div class="shortcut-item">
-                        <kbd>?</kbd>
-                        <span>Show this help</span>
-                    </div>
+        </div>
+
+        <!-- Primary Action -->
+        <button class="primary-btn" id="new-joke-btn">
+            <span>New Joke</span>
+            <kbd>Enter</kbd>
+        </button>
+
+        <!-- Footer Hint -->
+        <div class="footer-hint">
+            <span class="category-label" id="category-label">All jokes</span>
+            <button class="text-btn" id="change-category">Change category</button>
+        </div>
+    </main>
+
+    <!-- Slide-in Menu -->
+    <div class="panel" id="menu-panel">
+        <div class="panel-header">
+            <h2>Menu</h2>
+            <button class="icon-btn" id="close-menu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="panel-content">
+            <div class="menu-section">
+                <label for="category-filter">Category</label>
+                <select id="category-filter">
+                    <option value="all">All Categories</option>
+                </select>
+            </div>
+            <div class="menu-section">
+                <button class="menu-item" id="view-history">
+                    <i class="fas fa-history"></i>
+                    <span>History</span>
+                </button>
+            </div>
+            <div class="menu-section shortcuts">
+                <h3>Shortcuts</h3>
+                <div class="shortcut">
+                    <kbd>Enter</kbd>
+                    <span>New joke</span>
+                </div>
+                <div class="shortcut">
+                    <kbd>F</kbd>
+                    <span>Favorite</span>
+                </div>
+                <div class="shortcut">
+                    <kbd>C</kbd>
+                    <span>Copy</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
+    <!-- Slide-in Favorites -->
+    <div class="panel" id="favorites-panel">
+        <div class="panel-header">
+            <h2>Favorites</h2>
+            <button class="icon-btn" id="close-favorites">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="panel-content">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="favorite-search" placeholder="Search...">
+            </div>
+            <div id="favorites-list" class="list-container">
+                <div class="empty-state">
+                    <i class="far fa-heart"></i>
+                    <p>No favorites yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide-in History -->
+    <div class="panel" id="history-panel">
+        <div class="panel-header">
+            <h2>History</h2>
+            <button class="icon-btn" id="close-history">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="panel-content">
+            <div id="history-list" class="list-container">
+                <div class="empty-state">
+                    <i class="fas fa-clock"></i>
+                    <p>No history yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Toast -->
     <div class="toast" id="toast">
         <i class="fas fa-check-circle"></i>
-        <span id="toast-message">Action completed!</span>
+        <span id="toast-message"></span>
     </div>
+
+    <!-- Hidden voice select (for TTS) -->
+    <select id="voice-select" style="display: none;"></select>
 
     <script src="script.js"></script>
 </body>
